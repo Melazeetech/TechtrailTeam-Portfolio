@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Techrial Team - Interactive Roadmap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals with Teal Accent -->
+    <!-- Application Structure Plan: A single-page application with a fixed sidebar for navigation and distinct, scrollable content sections. This structure was chosen to allow users to easily jump between key areas of the roadmap (Vision, Strategy, Team, Timeline) without losing context, making it a practical tool for quick reference. Key interactions include tabbed content for strategy, clickable cards for team roles, and an interactive timeline, which turns passive reading into active exploration. -->
+    <!-- Visualization & Content Choices: 
+        - Vision/Mission: Goal: Inform -> Method: Styled HTML cards -> Interaction: None -> Justification: Clear, direct presentation of core values.
+        - Monetization: Goal: Compare Parts-of-a-Whole -> Method: Donut Chart (Chart.js) -> Interaction: Click/hover on segments to see details -> Justification: Instantly communicates the concept of diversified income streams.
+        - AI Risk: Goal: Compare -> Method: Horizontal Bar Chart (Chart.js) -> Interaction: Hover for tooltips -> Justification: Provides a quick, scannable comparison of categorical risk levels.
+        - Learning Sprint: Goal: Organize Process -> Method: Interactive HTML/CSS Diagram -> Interaction: Click to expand details for each week -> Justification: Visualizes the 8-week process more effectively than a static list.
+        - 6-Month Timeline: Goal: Show Change Over Time -> Method: Interactive HTML/CSS Timeline -> Interaction: Click on a month to reveal its goals -> Justification: Creates an engaging, explorable journey of the team's goals, enhancing motivation.
+        - Content Calendar: Goal: Provide detail and context -> Method: Interactive HTML table rows with collapsible details -> Interaction: Click on a video topic to reveal its prompt and a representative image -> Justification: Transforms a static calendar into a dynamic resource, providing actionable content generation details without cluttering the main table view.
+        - AI Video Generator: Goal: Make strategy practical -> Method: Interactive form and button -> Interaction: User enters a topic and clicks a button to generate AI-powered video ideas -> Justification: This new feature directly implements the team's AI strategy, turning a concept into a tangible tool for daily use.
+    -->
+    <!-- CONFIRMATION: NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+                max-height: 400px;
+            }
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+            transform: translateX(4px);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 1.25rem;
+            left: -0.5rem;
+            width: 1rem;
+            height: 1rem;
+            background-color: #ccfbf1; /* teal-100 */
+            border: 3px solid #0d9488; /* teal-600 */
+            border-radius: 9999px;
+            z-index: 10;
+        }
+        .tab.active {
+            background-color: #0d9488;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="text-stone-800">
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-lg fixed top-0 left-0 h-full p-4 hidden lg:flex flex-col">
+            <div class="flex items-center space-x-2 mb-1">
+                <!-- Custom SVG Logo -->
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 12L12 14.5L17 12L12 9.5L7 12Z" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 7L12 12L22 7" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 2V12L22 7" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1 class="text-2xl font-bold text-stone-900">Techrial Team</h1>
+            </div>
+            <p class="text-sm text-teal-700 font-semibold mb-8">Interactive Roadmap</p>
+            <nav id="desktop-nav" class="flex flex-col space-y-2">
+                <a href="#vision" class="nav-link active py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Vision & Mission</a>
+                <a href="#strategy" class="nav-link py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Strategy</a>
+                <a href="#team" class="nav-link py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Team & Roles</a>
+                <a href="#growth" class="nav-link py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Growth Plan</a>
+                <a href="#timeline" class="nav-link py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">6-Month Timeline</a>
+            </nav>
+            <div class="mt-auto text-center text-xs text-stone-400">
+                <p>"The future belongs to those who prepare for it today."</p>
+                <p class="font-semibold">- Malcolm X</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="lg:ml-64 flex-1 bg-stone-100">
+            <!-- Mobile Header -->
+            <header class="lg:hidden sticky top-0 bg-white/80 backdrop-blur-sm shadow-md z-30 p-4">
+                 <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <!-- Custom SVG Logo -->
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 12L12 14.5L17 12L12 9.5L7 12Z" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 7L12 12L22 7" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 2V12L22 7" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div>
+                            <h1 class="text-xl font-bold text-stone-900">Techrial Team</h1>
+                            <p class="text-xs text-teal-700 font-semibold">Interactive Roadmap</p>
+                        </div>
+                    </div>
+                    <button id="mobile-menu-button" class="p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                 </div>
+                 <nav id="mobile-nav" class="hidden mt-4 flex-col space-y-2">
+                    <a href="#vision" class="nav-link-mobile block py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Vision & Mission</a>
+                    <a href="#strategy" class="nav-link-mobile block py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Strategy</a>
+                    <a href="#team" class="nav-link-mobile block py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Team & Roles</a>
+                    <a href="#growth" class="nav-link-mobile block py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">Growth Plan</a>
+                    <a href="#timeline" class="nav-link-mobile block py-2 px-4 rounded-lg font-medium text-stone-600 hover:bg-teal-50 hover:text-teal-700">6-Month Timeline</a>
+                </nav>
+            </header>
+
+            <div class="p-4 sm:p-6 md:p-8 space-y-12">
+                <!-- Vision & Mission Section -->
+                <section id="vision" class="scroll-mt-20">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-2">Vision & Mission</h2>
+                    <p class="text-stone-600 mb-8 max-w-3xl">This section outlines our core purpose and guiding principles. It's the 'why' behind everything we do, setting the stage for our strategic goals and actions.</p>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-2xl font-semibold text-teal-700 mb-4">Our Vision</h3>
+                        <p class="text-lg text-stone-700 leading-relaxed">To become a leading African tech collective that builds practical, impactful products, trains the next generation of creators, and leverages artificial intelligence responsibly to scale our impact across communities. We aim to be a beacon of technological excellence and community-driven innovation.</p>
+                    </div>
+                    <div class="mt-8 grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="text-xl font-semibold mb-3">Our Mission</h4>
+                            <ul class="space-y-4">
+                                <li class="flex items-start">
+                                    <span class="text-teal-500 font-bold text-2xl mr-4">&#10003;</span>
+                                    <div><strong class="block text-stone-800">Empowerment:</strong> Equip every team member with a chosen specialization and a clear pathway to mastery.</div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-teal-500 font-bold text-2xl mr-4">&#10003;</span>
+                                    <div><strong class="block text-stone-800">Engagement:</strong> Build consistent, high-value content that educates and attracts a loyal, engaged audience.</div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-teal-500 font-bold text-2xl mr-4">&#10003;</span>
+                                    <div><strong class="block text-stone-800">Monetization:</strong> Create diversified and sustainable revenue streams through services, content, and products.</div>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-teal-500 font-bold text-2xl mr-4">&#10003;</span>
+                                    <div><strong class="block text-stone-800">Efficiency:</strong> Thoughtfully integrate AI to automate tasks and amplify our creative output, prioritizing human judgment.</div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-teal-600 text-white p-6 rounded-xl shadow-sm flex flex-col justify-center">
+                             <h4 class="text-xl font-bold mb-3">Why Now?</h4>
+                             <p class="leading-relaxed">The rapid growth of technology adoption in Africa, coupled with a surge in digital content consumption and the normalization of remote work, creates a fertile and dynamic environment for a focused team like ours to scale quickly and make a significant impact.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Strategy Section -->
+                <section id="strategy" class="scroll-mt-20">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-2">Our Strategy</h2>
+                    <p class="text-stone-600 mb-8 max-w-3xl">Here we break down the 'how'. This section details our approach to content creation, AI integration, and monetization. Use the tabs below to explore each component of our strategy.</p>
+                    
+                    <div class="mb-6 flex border-b border-stone-300">
+                        <button class="tab active py-2 px-6 font-semibold text-stone-600" data-tab="content">Content</button>
+                        <button class="tab py-2 px-6 font-semibold text-stone-600" data-tab="monetization">Monetization</button>
+                        <button class="tab py-2 px-6 font-semibold text-stone-600" data-tab="ai">AI Integration</button>
+                    </div>
+
+                    <div id="content-content" class="tab-content active">
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg mb-2">Quick Tech Tips</h4>
+                                <p class="text-sm text-stone-600">Short-form, actionable how-to videos for busy professionals and learners.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg mb-2">Explain Like I'm 5</h4>
+                                <p class="text-sm text-stone-600">Simplified concept videos that demystify complex technological topics.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg mb-2">Tools & Tutorials</h4>
+                                <p class="text-sm text-stone-600">In-depth walkthroughs of essential software and code.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg mb-2">Local Case Studies</h4>
+                                <p class="text-sm text-stone-600">Showcasing real-world problems in our community solved with innovative tech.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="monetization-content" class="tab-content">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg mb-2 text-center">Diversified Revenue Streams</h4>
+                                <p class="text-sm text-stone-600 mb-4 text-center">Click or hover on a chart segment to learn more about each income stream.</p>
+                                <div class="chart-container">
+                                    <canvas id="monetizationChart"></canvas>
+                                </div>
+                            </div>
+                            <div id="monetization-details" class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 min-h-[300px] flex flex-col justify-center">
+                                <h4 id="monetization-title" class="text-xl font-bold text-teal-700 mb-2">Our Approach to Monetization</h4>
+                                <p id="monetization-text" class="text-stone-700">We will build a portfolio of income streams to ensure long-term stability and profitability. This balanced approach reduces risk and opens multiple avenues for growth. Explore the chart to see the breakdown.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="ai-content" class="tab-content">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg mb-2 text-center">AI Tool Replacement Risk</h4>
+                                <p class="text-sm text-stone-600 mb-4 text-center">A realistic look at AI's role. Our strategy is to use AI as a powerful assistant, not a replacement for human creativity and expertise.</p>
+                                <div class="chart-container h-64 md:h-80">
+                                    <canvas id="aiRiskChart"></canvas>
+                                </div>
+                            </div>
+                             <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                                <h4 class="text-xl font-bold text-teal-700 mb-2">Our Mitigation Strategy</h4>
+                                <ul class="space-y-3 text-stone-700">
+                                    <li class="flex items-start"><span class="mr-3">&#10148;</span>Focus on human-centric skills: creative control, deep domain expertise, and building genuine relationships.</li>
+                                    <li class="flex items-start"><span class="mr-3">&#10148;</span>Become experts in "prompt engineering" to maximize the value we get from AI tools.</li>
+                                    <li class="flex items-start"><span class="mr-3">&#10148;</span>Pack our output with local context and relevance, something that resists easy automation.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Team & Roles Section -->
+                <section id="team" class="scroll-mt-20">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-2">Team & Roles</h2>
+                    <p class="text-stone-600 mb-8 max-w-3xl">Meet the core team. This section defines our roles and introduces our structured plan for continuous learning and skill development, which is key to our long-term success.</p>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                         <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-1">Team Leader</h4>
+                            <p class="font-semibold text-teal-600 mb-2">MelazeeTech</p>
+                            <p class="text-sm text-stone-600">Drives the vision, maintains quality control, builds partnerships, and manages schedules.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-1">Content Creator</h4>
+                            <p class="text-sm text-stone-600">Focuses on the heart of our content—scriptwriting, recording, editing, and designing thumbnails.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-1">Social Media Manager</h4>
+                            <p class="text-sm text-stone-600">Responsible for cross-platform posting, community engagement, and driving follower growth.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-1">Tech Specialist</h4>
+                            <p class="text-sm text-stone-600">The hands-on builder, responsible for creating demos, mini-projects, and product prototypes.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-1">AI & Research Lead</h4>
+                            <p class="text-sm text-stone-600">Stays ahead of the curve by scouting new tools, developing automation, and mastering prompt engineering.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-stone-900 mb-2">8-Week Learning Sprints</h3>
+                    <p class="text-stone-600 mb-8 max-w-3xl">To scale our expertise, each member completes a focused learning sprint. Click on a phase to see the details.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="sprint-container">
+                    </div>
+                </section>
+
+                <!-- Growth Plan Section -->
+                <section id="growth" class="scroll-mt-20">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-2">Growth Plan</h2>
+                    <p class="text-stone-600 mb-8 max-w-3xl">This section details our tactics for growing our audience and provides a sample 4-week content calendar to illustrate our commitment to consistency and engagement.</p>
+                    <div class="grid md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-2">Consistency</h4>
+                            <p class="text-sm text-stone-600">Publish on a predictable schedule and repurpose long-form content into engaging short clips and carousels.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-2">Engagement</h4>
+                            <p class="text-sm text-stone-600">Actively engage with our community by replying to comments, running polls, and hosting live Q&A sessions.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h4 class="font-bold text-lg mb-2">Collaboration</h4>
+                            <p class="text-sm text-stone-600">Partner with creators in adjacent niches to expand our reach and introduce our content to new audiences.</p>
+                        </div>
+                    </div>
+
+                    <!-- AI Video Generator Section -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                        <h4 class="text-xl font-bold mb-4 flex items-center">
+                            AI Video Generator
+                            <svg class="ml-2 h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L12 19.25M12 19.25L14.25 17M12 19.25V17M12 21.25V19.25M15.5 10.75a3.5 3.5 0 01-7 0m7 0c0-2.316-2.5-4.25-3.5-4.25S9.5 8.434 9.5 10.75m7 0H18m-9.5-2.5H6M12 3v2.25M17 5.75L15 7.75M7 5.75L9 7.75M4 12h2.25M20 12h-2.25"/>
+                            </svg>
+                        </h4>
+                        <p class="text-sm text-stone-600 mb-4">Generate video ideas instantly. Just enter a topic, and our AI will create a compelling title and a detailed script outline based on your roadmap strategy.</p>
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                            <input type="text" id="video-topic-input" placeholder="Enter video topic, e.g., 'Intro to Tailwind CSS'" class="flex-1 p-2 rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <button id="generate-button" class="bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-teal-700 transition">Generate Idea</button>
+                        </div>
+                        <div id="generation-output" class="mt-4 p-4 bg-stone-50 rounded-lg border border-stone-200 hidden">
+                            <p id="loading-indicator" class="text-teal-600 italic hidden">Generating ideas, please wait...</p>
+                            <h5 id="generated-title" class="font-bold text-lg mb-2"></h5>
+                            <pre id="generated-script" class="whitespace-pre-wrap text-sm text-stone-700"></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 overflow-x-auto">
+                        <h4 class="text-xl font-bold mb-4">Sample 4-Week Content Calendar</h4>
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-stone-50">
+                                <tr>
+                                    <th class="p-3 font-semibold">Week</th>
+                                    <th class="p-3 font-semibold">Video Topics</th>
+                                    <th class="p-3 font-semibold">Community Action</th>
+                                    <th class="p-3 font-semibold">Growth Task</th>
+                                </tr>
+                            </thead>
+                            <tbody id="video-calendar-body" class="divide-y divide-stone-200">
+                                <!-- Table content will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 6-Month Timeline Section -->
+                <section id="timeline" class="scroll-mt-20">
+                    <h2 class="text-3xl font-bold text-stone-900 mb-2">6-Month Action Timeline</h2>
+                    <p class="text-stone-600 mb-8 max-w-3xl">This interactive timeline outlines our key objectives for the next six months. Click on each month to reveal the specific actions and goals we aim to achieve.</p>
+                    <div class="relative border-l-4 border-teal-200 ml-4 py-4 space-y-12" id="timeline-container">
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('#desktop-nav a');
+    const mobileNavLinks = document.querySelectorAll('#mobile-nav a');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileNav = document.getElementById('mobile-nav');
+
+    const generateButton = document.getElementById('generate-button');
+    const topicInput = document.getElementById('video-topic-input');
+    const outputContainer = document.getElementById('generation-output');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const generatedTitle = document.getElementById('generated-title');
+    const generatedScript = document.getElementById('generated-script');
+
+    const monetizationData = {
+        labels: ['Service Revenue', 'Content Revenue', 'Digital Products', 'Community'],
+        datasets: [{
+            label: 'Monetization Streams',
+            data: [40, 25, 20, 15],
+            backgroundColor: ['#14b8a6', '#2dd4bf', '#5eead4', '#99f6e4'],
+            borderColor: '#f5f5f4',
+            hoverOffset: 8
+        }]
+    };
+
+    const monetizationDetails = [
+        { title: 'Service Revenue', text: 'Offering high-value freelance builds, custom tools, and maintenance packages to local businesses. This provides immediate cash flow and builds our professional portfolio.' },
+        { title: 'Content Revenue', text: 'Monetizing our audience through ad platforms, sponsorships, and affiliate links. As our audience grows, so does this revenue stream.' },
+        { title: 'Digital Products', text: 'Creating and selling scalable products like templates, UI kits, starter code, and mini-courses. This creates passive income and showcases our expertise.' },
+        { title: 'Community-Driven Revenue', text: 'Building a paid membership tier (e.g., on Discord or Patreon) that offers direct mentorship, exclusive content, and a supportive network for our most dedicated followers.' }
+    ];
+
+    const aiRiskData = {
+        labels: ['ChatGPT/LLMs', 'Image Generators', 'AI Video Tools', 'Descript/Runway'],
+        datasets: [{
+            label: 'Replacement Risk',
+            data: [1.5, 2.5, 2.5, 1],
+            backgroundColor: (context) => {
+                const value = context.raw;
+                if (value < 2) return '#2dd4bf';
+                return '#f97316';
+            },
+            borderColor: '#f5f5f4',
+            borderWidth: 2,
+            borderRadius: 4,
+        }]
+    };
+
+    const timelineData = [
+        { month: 'Month 1', title: 'Foundation & Launch', tasks: ['Set up content channels & branding', 'Launch first 12 short videos', 'Set up Notion workspace', 'Each member picks specialization'] },
+        { month: 'Month 2', title: 'Stabilize & Earn', tasks: ['Stabilize publishing cadence to 3-4 videos/week', 'Start small freelance gigs for initial capital', 'Run first comprehensive analytics review'] },
+        { month: 'Month 3', title: 'Expand & Promote', tasks: ['Draft a paid tutorial or mini-course', 'Test first paid promotion on a top video', 'Begin outreach to potential sponsors'] },
+        { month: 'Month 4', title: 'Refine & Engage', tasks: ['Improve digital products based on feedback', 'Introduce membership perks for the community', 'Increase frequency of creator collaborations'] },
+        { month: 'Month 5', title: 'Scale & Systemize', tasks: ['Scale services and product sales efforts', 'Hire or contract help if workload demands', 'Document all key operational processes'] },
+        { month: 'Month 6', title: 'Assess & Plan', tasks: ['Re-assess all KPIs against initial goals', 'Set new, ambitious 6-month goals', 'Systemize repeatable flows for content and product launches'] }
+    ];
+
+    const sprintData = [
+        { phase: 'Phase 1: Weeks 1-2', title: 'Foundations', details: 'Get acquainted with the core concepts of your specialization and set up your development environment. Focus on fundamentals.' },
+        { phase: 'Phase 2: Weeks 3-4', title: 'Guided Mini-Project', details: 'Work through a small, guided project with regular peer reviews to solidify your understanding and apply new knowledge.' },
+        { phase: 'Phase 3: Weeks 5-6', title: 'Deployable Demo', details: 'Build a functional and deployable demo of a product, documenting your entire workflow from start to finish.' },
+        { phase: 'Phase 4: Weeks 7-8', title: 'Publish & Teach', details: 'Create a case study video or tutorial based on your project and teach a 30-45 minute session to the entire team.' }
+    ];
+
+    const videoPromptsData = [
+        {
+            topic: 'Intro to channel + 3 quick tech tips',
+            image: 'https://placehold.co/400x200/2dd4bf/ffffff?text=Techrial+Team+Intro',
+            prompt: 'Create an engaging and dynamic short-form video. The video should have an energetic host introducing the Techrial Team channel. Use fast-paced cuts, on-screen text animations, and three quick, actionable tech tips demonstrated with screen recordings. The tone should be friendly, informative, and high-energy. End with a call to action to subscribe and follow.'
+        },
+        {
+            topic: 'Tool walkthrough + "how it helps"',
+            image: 'https://placehold.co/400x200/14b8a6/ffffff?text=Figma+Tutorial',
+            prompt: 'Generate a tutorial video on a useful tool like Figma. The video should start with a clear problem statement, followed by a step-by-step screen recording walkthrough of the tool\'s key features. Include a "how it helps" segment that explains the real-world benefits and use cases for the audience. Use clear voiceover and on-screen annotations.'
+        },
+        {
+            topic: 'Mini case study (local problem solved)',
+            image: 'https://placehold.co/400x200/0f766e/ffffff?text=Local+Case+Study',
+            prompt: 'Produce a mini case study video about a local community problem solved with a simple tech solution. Use a storytelling format: introduce the problem, show the tech solution being built (e.g., a simple app or website), and conclude by showing its positive impact on the community. The video should feel authentic and grounded in local context, with testimonials or real-world footage.'
+        },
+        {
+            topic: 'Compilation & AMA (ask me anything)',
+            image: 'https://placehold.co/400x200/0d9488/ffffff?text=Q&A+Session',
+            prompt: 'Create a video compilation of the month\'s best moments or highlights. Following the compilation, transition into an "Ask Me Anything" session with the team. Use a multi-cam setup for each team member answering questions from the community. The tone should be conversational and transparent, building a strong connection with the audience.'
+        }
+    ];
+
+    const calendarData = [
+        {
+            week: 'Week 1',
+            videoTopic: 'Intro to channel + 3 quick tech tips',
+            communityAction: 'Ask followers for their biggest tech challenges',
+            growthTask: 'Post short clips to drive traffic'
+        },
+        {
+            week: 'Week 2',
+            videoTopic: 'Tool walkthrough + "how it helps"',
+            communityAction: 'Reply to top 10 comments with personalized videos',
+            growthTask: 'Collaborate with a local creator'
+        },
+        {
+            week: 'Week 3',
+            videoTopic: 'Mini case study (local problem solved)',
+            communityAction: 'Run 1 viewer poll for new content ideas',
+            growthTask: 'Boost top-performing video with small budget'
+        },
+        {
+            week: 'Week 4',
+            videoTopic: 'Compilation & AMA (ask me anything)',
+            communityAction: 'Host 1 live Q&A session with the team',
+            growthTask: 'Analyze analytics and plan next month\'s batch'
+        }
+    ];
+
+    async function generateVideoIdea(topic) {
+        // Show loading state
+        outputContainer.classList.remove('hidden');
+        generatedTitle.textContent = '';
+        generatedScript.textContent = '';
+        loadingIndicator.classList.remove('hidden');
+        generateButton.disabled = true;
+        
+        let chatHistory = [];
+        const prompt = `You are an expert content creator for a tech channel. The audience is African developers and tech enthusiasts. Given the topic "${topic}", create a compelling short-form video title and a detailed script outline. The tone should be engaging, informative, and community-focused. The script outline should be a few paragraphs long, structured logically to keep the viewer's attention. Respond in JSON format. The JSON schema is: { "title": "STRING", "scriptOutline": "STRING" }`;
+
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+        
+        // Define JSON schema for the response
+        const payload = {
+            contents: chatHistory,
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        "title": { "type": "STRING" },
+                        "scriptOutline": { "type": "STRING" }
+                    },
+                    "propertyOrdering": ["title", "scriptOutline"]
+                }
+            }
+        };
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+        let attempts = 0;
+        const maxAttempts = 5;
+        let delay = 1000;
+
+        while (attempts < maxAttempts) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429) { // Too Many Requests
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2; // Exponential backoff
+                        attempts++;
+                        continue;
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                }
+
+                const result = await response.json();
+                
+                // Parse the JSON string from the response
+                const jsonText = result.candidates[0].content.parts[0].text;
+                const parsedJson = JSON.parse(jsonText);
+
+                if (parsedJson && parsedJson.title && parsedJson.scriptOutline) {
+                    generatedTitle.textContent = parsedJson.title;
+                    generatedScript.textContent = parsedJson.scriptOutline;
+                } else {
+                    generatedTitle.textContent = 'Error: Unexpected response format from AI.';
+                    generatedScript.textContent = '';
+                }
+                break; // Exit the loop on success
+            } catch (error) {
+                generatedTitle.textContent = 'Error during generation.';
+                generatedScript.textContent = `Details: ${error.message}`;
+                break; // Exit the loop on non-retryable error
+            }
+        }
+        
+        // Hide loading state and re-enable button
+        loadingIndicator.classList.add('hidden');
+        generateButton.disabled = false;
+    }
+
+    generateButton.addEventListener('click', () => {
+        const topic = topicInput.value;
+        if (topic.trim() !== '') {
+            generateVideoIdea(topic);
+        } else {
+            alert('Please enter a video topic!');
+        }
+    });
+
+    function initMonetizationChart() {
+        const ctx = document.getElementById('monetizationChart').getContext('2d');
+        const detailsTitle = document.getElementById('monetization-title');
+        const detailsText = document.getElementById('monetization-text');
+        
+        const chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: monetizationData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '50%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.raw}%`;
+                            }
+                        }
+                    }
+                },
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        detailsTitle.textContent = monetizationDetails[index].title;
+                        detailsText.textContent = monetizationDetails[index].text;
+                    }
+                }
+            }
+        });
+    }
+
+    function initAiRiskChart() {
+        const ctx = document.getElementById('aiRiskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: aiRiskData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 3,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                if (value === 1) return 'Low';
+                                if (value === 2) return 'Medium';
+                                if (value === 3) return 'High';
+                                return '';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let riskLevel = 'Low';
+                                if (context.raw > 1.5 && context.raw < 3) riskLevel = 'Medium';
+                                else if (context.raw >= 3) riskLevel = 'High';
+                                return `Risk: ${riskLevel}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function populateTimeline() {
+        const container = document.getElementById('timeline-container');
+        timelineData.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'timeline-item relative pl-8 pb-8';
+            div.innerHTML = `
+                <div class="cursor-pointer">
+                    <h4 class="text-xl font-bold text-stone-800">${item.month}</h4>
+                    <p class="text-teal-600 font-semibold">${item.title}</p>
+                </div>
+                <div class="timeline-content hidden mt-4 pl-4 border-l-2 border-stone-200">
+                    <ul class="list-disc list-inside space-y-2 text-stone-600">
+                        ${item.tasks.map(task => `<li>${task}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            container.appendChild(div);
+            div.querySelector('h4').parentElement.addEventListener('click', () => {
+                div.querySelector('.timeline-content').classList.toggle('hidden');
+            });
+        });
+    }
+
+    function populateSprints() {
+        const container = document.getElementById('sprint-container');
+        sprintData.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'sprint-item bg-white p-6 rounded-xl shadow-sm border border-stone-200 cursor-pointer transition hover:shadow-md hover:border-teal-300';
+            div.innerHTML = `
+                <h4 class="font-bold text-lg mb-2 text-teal-700">${item.phase}</h4>
+                <p class="font-semibold text-stone-800 mb-2">${item.title}</p>
+                <div class="sprint-details hidden text-sm text-stone-600 mt-3">
+                    <p>${item.details}</p>
+                </div>
+            `;
+            container.appendChild(div);
+            div.addEventListener('click', () => {
+                const details = div.querySelector('.sprint-details');
+                details.classList.toggle('hidden');
+                div.classList.toggle('bg-teal-50');
+            });
+        });
+    }
+
+    function populateCalendar() {
+        const tbody = document.getElementById('video-calendar-body');
+        calendarData.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="p-3 font-medium">${item.week}</td>
+                <td class="p-3 cursor-pointer hover:bg-stone-50" data-video-index="${index}">${item.videoTopic}</td>
+                <td class="p-3">${item.communityAction}</td>
+                <td class="p-3">${item.growthTask}</td>
+            `;
+            const detailsTr = document.createElement('tr');
+            detailsTr.className = 'hidden';
+            detailsTr.innerHTML = `
+                <td colspan="4" class="p-4 bg-teal-50/50 rounded-b-lg">
+                    <div class="grid md:grid-cols-2 gap-4 items-start">
+                        <div class="rounded-lg overflow-hidden shadow-sm">
+                            <img src="${videoPromptsData[index].image}" alt="Placeholder image for video" class="w-full h-auto">
+                        </div>
+                        <div>
+                            <h5 class="font-bold text-teal-700 text-lg mb-2">Prompt & Video Instructions</h5>
+                            <p class="text-sm text-stone-600 leading-relaxed">${videoPromptsData[index].prompt}</p>
+                        </div>
+                    </div>
+                </td>
+            `;
+            tr.querySelector('td[data-video-index]').addEventListener('click', () => {
+                detailsTr.classList.toggle('hidden');
+                if (detailsTr.classList.contains('hidden')) {
+                    tr.classList.remove('bg-teal-100');
+                } else {
+                    tr.classList.add('bg-teal-100');
+                }
+            });
+            tbody.appendChild(tr);
+            tbody.appendChild(detailsTr);
+        });
+    }
+
+    function handleTabs() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(item => item.classList.remove('active'));
+                tab.classList.add('active');
+
+                const targetId = tab.dataset.tab;
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${targetId}-content`) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${id}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: '-30% 0px -70% 0px' });
+
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+    
+    mobileMenuButton.addEventListener('click', () => {
+        mobileNav.classList.toggle('hidden');
+    });
+
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            mobileNav.classList.add('hidden');
+        });
+    });
+
+    initMonetizationChart();
+    initAiRiskChart();
+    populateTimeline();
+    populateSprints();
+    populateCalendar();
+    handleTabs();
+});
+</script>
+</body>
+</html>
